@@ -90,18 +90,18 @@ Each VSC host variables file must contain:
     routing_to_underlay: true
     as_number: 65010
     list_of_overlay_nets:
-    - 10.30.0.0/20
-    - 10.40.0.0/22
-peer_list:
-    - ip: 10.21.2.248
-      as: 65007
-    - ip: 10.21.2.252
-      as: 65007
-    - ip: 10.21.3.248
-      as: 65071
-    - ip: 10.21.3.252
-      as: 65071
-
+     - 10.30.0.0/20
+     - 10.40.0.0/22
+    peer_list:
+     - ip: 10.21.2.248
+       as: 65007
+     - ip: 10.21.2.252
+       as: 65007
+     - ip: 10.21.3.248
+       as: 65071
+     - ip: 10.21.3.252
+       as: 65071
+```
 
 ## Dependencies
 
