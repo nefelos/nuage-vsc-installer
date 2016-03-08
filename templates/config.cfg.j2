@@ -55,6 +55,42 @@ echo "Router (Network Side) Configuration"
             {% endif %}
           {% endif %}
         {% endfor %}
+
+        {% if routing_to_underlay is defined %}
+        policy-options
+            begin
+            prefix-list "vm"
+               {% for overlay_net in list_of_overlay_nets %}
+                  prefix {{ overlay_net }} longer
+               {% endfor %}
+            exit
+            {% if system_ip is defined %}
+            prefix-list "system"
+                prefix {{ system_ip }}/32 exact
+            exit 
+            {% endif %}
+            policy-statement "to-bgp"
+               entry 10
+                 from
+                    protocol static
+                    prefix-list "vm"
+                 exit
+                 action accept
+                 exit
+               exit
+               {% if system_ip is defined %}
+               entry 20
+                 from
+                    prefix-list "system"
+                 exit
+                 action accept
+                 exit
+               exit
+               {% endif %}
+            exit
+            commit
+        exit 
+        {% endif %}
         bgp
           connect-retry 2
           min-route-advertisement 1
@@ -63,7 +99,26 @@ echo "Router (Network Side) Configuration"
               send-orf
             exit
           exit
-          group "internal"
+          {% if routing_to_underlay is defined %}
+          rapid-withdrawal
+          rapid-update l2-vpn mvpn-ipv4 mdt-safi evpn
+          next-hop-resolution
+                use-bgp-routes
+          exit
+          group "underlay-peers"
+            family ipv4
+            export "to-bgp"
+            local-address {{ interfaces.control.ip }}
+            {% for peer in peer_list %}
+              neighbor {{ peer.ip }}
+                local-as {{ peer.as }}
+                peer-as {{ peer.as }}
+              exit
+            {% endfor %}
+          exit
+          {% endif %}
+          
+         group "internal"
             type internal
               {% for vsc_item in list_of_vscs %}
                 {% if vsc_item != inventory_hostname %}
