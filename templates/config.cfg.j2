@@ -69,6 +69,9 @@ echo "Router (Network Side) Configuration"
                 prefix {{ system_ip }}/32 exact
             exit 
             {% endif %}
+            prefix-list "0/0"
+                prefix 0.0.0.0/0 exact
+            exit
             policy-statement "to-bgp"
                entry 10
                  from
@@ -87,6 +90,18 @@ echo "Router (Network Side) Configuration"
                  exit
                exit
                {% endif %}
+            exit
+            policy-statement "default"
+                entry 10
+                    from
+                        prefix-list "0/0"
+                    exit
+                    action accept
+                    exit
+                exit
+                entry 20
+                    action reject
+                exit
             exit
             commit
         exit 
@@ -107,6 +122,7 @@ echo "Router (Network Side) Configuration"
           exit
           group "underlay-peers"
             family ipv4
+            import "default"
             export "to-bgp"
             local-address {{ interfaces.control.ip }}
             {% for peer in peer_list %}
